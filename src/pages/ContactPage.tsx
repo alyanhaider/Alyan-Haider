@@ -1,10 +1,16 @@
-﻿
+
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, useMotionValue, useMotionTemplate } from "framer-motion";
 import clsx from "clsx";
 import { twMerge } from "tailwind-merge";
 import emailjs from "@emailjs/browser";
 import SharedNav from "../components/SharedNav";
+
+// Reduce motion on mobile for better performance
+const mobileTransition =
+  typeof window !== "undefined" && window.innerWidth < 768
+    ? { duration: 0.2, ease: "easeOut" }
+    : undefined; // undefined means use the component's own transition
 
 function cn(...inputs: Array<string | undefined | null | false>) {
   return twMerge(clsx(inputs));
@@ -187,8 +193,15 @@ function MovingBorderButton({
 
   useEffect(() => {
     let rafId = 0;
+    const isMobile = window.innerWidth < 768;
+    let frameCount = 0;
 
     const animate = (time: number) => {
+      frameCount += 1;
+      if (isMobile && frameCount % 2 !== 0) {
+        rafId = requestAnimationFrame(animate);
+        return;
+      }
       if (pathRef.current) {
         const length = pathRef.current.getTotalLength();
         const pxPerMs = length / duration;
@@ -391,6 +404,37 @@ input:-webkit-autofill, input:-webkit-autofill:focus {
 ::-webkit-scrollbar{width:4px}
 ::-webkit-scrollbar-track{background:#f9f8ff}
 ::-webkit-scrollbar-thumb{background:rgba(167,139,250,0.35);border-radius:2px}
+
+@media (max-width: 768px) {
+  .backdrop-blur,
+  .backdrop-blur-sm,
+  .backdrop-blur-md,
+  .backdrop-blur-lg,
+  .backdrop-blur-xl,
+  .backdrop-blur-2xl,
+  .backdrop-blur-3xl {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  /* Remove GPU pre-allocation on elements that don't need it on mobile */
+  .split-char,
+  .proj-card,
+  .proc-card,
+  .parallax-card-container,
+  .parallax-card-content,
+  .parallax-image-circle {
+    will-change: auto !important;
+  }
+
+  /* Disable 3D transform context on mobile — causes compositing cost */
+  .projects-cards,
+  .proj-card,
+  .proc-stage {
+    transform-style: flat !important;
+    perspective: none !important;
+  }
+}
 `.trim();
 
     document.head.appendChild(style);
@@ -970,7 +1014,11 @@ input:-webkit-autofill, input:-webkit-autofill:focus {
                           {services.map((option) => (
                             <motion.div
                               key={option}
-                              whileHover={{ backgroundColor: "rgba(45,212,191,0.12)", x: 4 }}
+                              whileHover={
+                                window.innerWidth > 768
+                                  ? { backgroundColor: "rgba(45,212,191,0.12)", x: 4 }
+                                  : {}
+                              }
                               onClick={() => {
                                 setFormData((p) => ({ ...p, service: option }));
                                 setDropdownOpen(false);
@@ -1082,7 +1130,7 @@ input:-webkit-autofill, input:-webkit-autofill:focus {
                         href="https://wa.me/923255629527"
                         target="_blank"
                         rel="noopener noreferrer"
-                        whileHover={{ scale: 1.03 }}
+                        whileHover={window.innerWidth > 768 ? { scale: 1.03 } : {}}
                         className={cn(
                           "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px]",
                           "bg-green-500/10 border border-green-500/20 text-green-400/80",
@@ -1103,7 +1151,7 @@ input:-webkit-autofill, input:-webkit-autofill:focus {
 
                       <motion.a
                         href="mailto:alyanhaider369@gmail.com"
-                        whileHover={{ scale: 1.03 }}
+                        whileHover={window.innerWidth > 768 ? { scale: 1.03 } : {}}
                         className={cn(
                           "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px]",
                           "bg-[#2DD4BF]/10 border border-[#2DD4BF]/20 text-[#2DD4BF]/80",
@@ -1239,7 +1287,11 @@ input:-webkit-autofill, input:-webkit-autofill:focus {
                   </motion.svg>
 
                   <motion.button
-                    whileHover={{ borderColor: "rgba(45,212,191,0.40)", color: "rgba(26,26,46,0.85)" }}
+                    whileHover={
+                      window.innerWidth > 768
+                        ? { borderColor: "rgba(45,212,191,0.40)", color: "rgba(26,26,46,0.85)" }
+                        : {}
+                    }
                     whileTap={{ scale: 0.97 }}
                     onClick={() => {
                       setFormData({ from_name: "", from_email: "", service: "", message: "" });
@@ -1281,7 +1333,7 @@ input:-webkit-autofill, input:-webkit-autofill:focus {
                     href={item.href}
                     target={item.label === "Email" ? undefined : "_blank"}
                     rel={item.label === "Email" ? undefined : "noopener noreferrer"}
-                    whileHover={{ y: -4, borderColor: "rgba(45,212,191,0.30)" }}
+                    whileHover={window.innerWidth > 768 ? { y: -4, borderColor: "rgba(45,212,191,0.30)" } : {}}
                     whileTap={{ scale: 0.95 }}
                     className={cn(
                       "flex flex-col items-center gap-2 p-3 rounded-xl",
