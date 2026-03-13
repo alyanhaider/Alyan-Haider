@@ -730,6 +730,24 @@ const CSS = `
       transform: translateZ(0);
       backface-visibility: hidden;
     }
+
+    /* 9. Defer offscreen section rendering on mobile */
+    #projects,
+    #process {
+      content-visibility: auto;
+      contain-intrinsic-size: 1px 1200px;
+    }
+
+    /* 10. Projects section — show local project images on mobile (avoid placeholder/stock image) */
+    .proj-front-img {
+      background-size: cover !important;
+      background-repeat: no-repeat !important;
+      background-position: center !important;
+      background-image: none !important;
+    }
+    .proj-front-img--0 { background-image: url('${project1Image}') !important; }
+    .proj-front-img--1 { background-image: url('${project2Image}') !important; }
+    .proj-front-img--2 { background-image: url('${project3Image}') !important; }
   }
 
   /* Touch devices only — more precise than max-width */
@@ -1050,6 +1068,7 @@ export default function Portfolio() {
   }, []);
 
   useLayoutEffect(() => {
+    if (window.innerWidth < 768) return;
     let cancelled = false;
     let mm: any;
     let refreshTimeouts: number[] = [];
