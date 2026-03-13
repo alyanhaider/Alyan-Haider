@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -662,11 +662,112 @@ const CSS = `
     .btn-primary, .btn-outline { justify-content: center; width: 100%; }
   }
 
+  @media (max-width: 768px) {
+    /* Remove GPU pre-allocation on elements that don't need it on mobile */
+    .split-char,
+    .proj-card,
+    .proc-card,
+    .parallax-card-container,
+    .parallax-card-content,
+    .parallax-image-circle {
+      will-change: auto !important;
+    }
+
+    /* Disable 3D transform context on mobile — causes compositing cost */
+    .projects-cards,
+    .proj-card,
+    .proc-stage {
+      transform-style: flat !important;
+      perspective: none !important;
+    }
+  }
+
+  /* ── MOBILE PERFORMANCE GLOBAL ── */
+  @media (max-width: 768px) {
+
+    /* 1. Disable background animation on mobile — bgBreath hue-rotate runs on compositor
+          but still causes repaints on some Android browsers */
+    body::before {
+      animation: none !important;
+    }
+
+    /* 2. Reduce backdrop-filter blur radius — full blur is expensive on mobile GPUs */
+    .header-inner {
+      backdrop-filter: blur(8px) saturate(120%) !important;
+      -webkit-backdrop-filter: blur(8px) saturate(120%) !important;
+    }
+
+    /* 3. Mobile menu — disable backdrop-filter entirely, use solid bg instead */
+    .mobile-menu {
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+      background: rgba(249, 248, 255, 0.99) !important;
+    }
+
+    /* 4. Disable rotation animations on decorative rings — pure GPU waste on mobile */
+    .ring-1, .ring-2 {
+      animation: none !important;
+    }
+
+    /* 5. Disable profile circle backdrop-filter */
+    .profile-circle {
+      backdrop-filter: none !important;
+    }
+
+    /* 6. Smooth scrolling on iOS — prevents rubber-band scroll jank */
+    * {
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* 7. Prevent text size adjustment on orientation change */
+    html {
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+    }
+
+    /* 8. Force GPU layer only on elements that scroll past viewport */
+    section {
+      transform: translateZ(0);
+      backface-visibility: hidden;
+    }
+  }
+
+  /* Touch devices only — more precise than max-width */
+  @media (hover: none) and (pointer: coarse) {
+
+    /* Remove hover transforms — on touch devices :hover triggers on tap
+       and stays stuck, causing visual glitches */
+    .btn-primary:hover,
+    .btn-outline:hover,
+    .nav-cta:hover {
+      transform: none !important;
+    }
+
+    /* Disable project card hover overlay — requires actual hover capability */
+    .proj-back:hover .proj-visit-overlay {
+      opacity: 1 !important; /* always show on touch, since hover doesn't work */
+    }
+
+    /* Remove box-shadow transitions — expensive on mobile compositing */
+    .btn-primary,
+    .btn-outline,
+    .parallax-card-content {
+      transition: background 0.2s ease, color 0.2s ease !important;
+    }
+  }
+
 `;
 
 const ParallaxCard = () => {
   const cardRef = useRef<HTMLDivElement>(null);
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
   const [rotate, setRotate] = useState({ x: 0, y: 0 });
+
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!cardRef.current) return;
@@ -684,10 +785,10 @@ const ParallaxCard = () => {
     <div
       ref={cardRef}
       className="parallax-card-container"
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
+      onMouseMove={isMobile ? undefined : handleMouseMove}
+      onMouseLeave={isMobile ? undefined : handleMouseLeave}
       style={{
-        transform: `perspective(1000px) rotateY(${rotate.x}deg) rotateX(${rotate.y}deg)`,
+        transform: isMobile ? 'none' : `perspective(1000px) rotateY(${rotate.x}deg) rotateX(${rotate.y}deg)`,
       }}
     >
         <div className="parallax-card-content">
@@ -1004,6 +1105,9 @@ export default function Portfolio() {
       const ScrollTrigger = (window as any).ScrollTrigger;
       if (!gsap || !ScrollTrigger) return;
       gsap.registerPlugin(ScrollTrigger);
+      if (window.innerWidth < 768) {
+        gsap.config({ force3D: false });
+      }
       initHeroAnimation(gsap);
 
       const safeRefresh = () => {
