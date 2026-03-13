@@ -4,6 +4,12 @@ import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import SharedNav from '../components/SharedNav';
 
+// Reduce motion on mobile for better performance
+const mobileTransition =
+  typeof window !== 'undefined' && window.innerWidth < 768
+    ? { duration: 0.2, ease: 'easeOut' }
+    : undefined; // undefined means use the component's own transition
+
 /* ── CSS ──────────────────────────────────────────────────────────── */
 const PROCESS_CSS = `
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Poppins:wght@400;500;600;700;800&display=swap');
@@ -426,6 +432,26 @@ const PROCESS_CSS = `
     .proc-page-cta-btns { flex-direction: column; width: 100%; }
     .proc-page-btn-primary, .proc-page-btn-outline { justify-content: center; width: 100%; }
   }
+
+  @media (max-width: 768px) {
+    /* Remove GPU pre-allocation on elements that don't need it on mobile */
+    .split-char,
+    .proj-card,
+    .proc-card,
+    .parallax-card-container,
+    .parallax-card-content,
+    .parallax-image-circle {
+      will-change: auto !important;
+    }
+
+    /* Disable 3D transform context on mobile — causes compositing cost */
+    .projects-cards,
+    .proj-card,
+    .proc-stage {
+      transform-style: flat !important;
+      perspective: none !important;
+    }
+  }
 `;
 
 /* ── ICONS ──────────────────────────────────────────────────────────── */
@@ -695,7 +721,7 @@ function StepsSection(): React.ReactElement {
                 initial={{ opacity: 0, x: dirX }}
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true, margin: '-80px' }}
-                transition={{ delay: 0.1, duration: 0.7, ease: 'easeOut' }}
+                transition={mobileTransition ?? { delay: 0.1, duration: 0.7, ease: 'easeOut' }}
               >
                 {/* Ghost number */}
                 <span className="proc-step-ghost-num" aria-hidden="true">
@@ -751,7 +777,7 @@ function GuaranteesSection(): React.ReactElement {
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
-        transition={{ duration: 0.55 }}
+        transition={mobileTransition ?? { duration: 0.55 }}
         style={{ display: 'flex', justifyContent: 'center' }}
       >
         <div className="proc-page-pill">
@@ -765,7 +791,7 @@ function GuaranteesSection(): React.ReactElement {
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
-        transition={{ duration: 0.55, delay: 0.12 }}
+        transition={mobileTransition ?? { duration: 0.55, delay: 0.12 }}
       >
         What You Can Always Count On
       </motion.h2>
@@ -778,8 +804,10 @@ function GuaranteesSection(): React.ReactElement {
             initial={{ opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ delay: i * 0.1, duration: 0.55, ease: 'easeOut' }}
-            whileHover={{ y: -4, boxShadow: '0 12px 36px rgba(167,139,250,0.14)' }}
+            transition={mobileTransition ?? { delay: i * 0.1, duration: 0.55, ease: 'easeOut' }}
+            whileHover={
+              window.innerWidth > 768 ? { y: -4, boxShadow: '0 12px 36px rgba(167,139,250,0.14)' } : {}
+            }
           >
             <div
               className="proc-page-g-bar"
@@ -809,7 +837,7 @@ function CTASection(): React.ReactElement {
         initial={{ opacity: 0, y: 24 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
-        transition={{ duration: 0.6 }}
+        transition={mobileTransition ?? { duration: 0.6 }}
       >
         Ready to Get Started?
       </motion.h2>
@@ -819,7 +847,7 @@ function CTASection(): React.ReactElement {
         initial={{ opacity: 0, y: 24 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
-        transition={{ duration: 0.6, delay: 0.14 }}
+        transition={mobileTransition ?? { duration: 0.6, delay: 0.14 }}
       >
         Send me a message and we'll have your project scoped within 24 hours.
       </motion.p>
@@ -829,14 +857,18 @@ function CTASection(): React.ReactElement {
         initial={{ opacity: 0, y: 24 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
-        transition={{ duration: 0.6, delay: 0.26 }}
+        transition={mobileTransition ?? { duration: 0.6, delay: 0.26 }}
       >
         <motion.a
           href="https://www.fiverr.com/alyan_haider259"
           target="_blank"
           rel="noopener noreferrer"
           className="proc-page-btn-primary"
-          whileHover={{ scale: 1.05, boxShadow: '0 10px 34px rgba(45,212,191,0.40)' }}
+          whileHover={
+            window.innerWidth > 768
+              ? { scale: 1.05, boxShadow: '0 10px 34px rgba(45,212,191,0.40)' }
+              : {}
+          }
           transition={{ type: 'spring', stiffness: 300, damping: 20 }}
         >
           Start on Fiverr
@@ -852,11 +884,15 @@ function CTASection(): React.ReactElement {
           target="_blank"
           rel="noopener noreferrer"
           className="proc-page-btn-outline"
-          whileHover={{
-            scale: 1.03,
-            borderColor: 'rgba(94,234,212,0.50)',
-            background: 'rgba(255,255,255,0.95)',
-          }}
+          whileHover={
+            window.innerWidth > 768
+              ? {
+                  scale: 1.03,
+                  borderColor: 'rgba(94,234,212,0.50)',
+                  background: 'rgba(255,255,255,0.95)',
+                }
+              : {}
+          }
           transition={{ type: 'spring', stiffness: 300, damping: 20 }}
         >
           WhatsApp Me
