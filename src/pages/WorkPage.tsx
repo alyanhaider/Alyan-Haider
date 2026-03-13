@@ -4,6 +4,12 @@ import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import SharedNav from '../components/SharedNav';
 
+// Reduce motion on mobile for better performance
+const mobileTransition =
+  typeof window !== 'undefined' && window.innerWidth < 768
+    ? { duration: 0.2, ease: 'easeOut' }
+    : undefined; // undefined means use the component's own transition
+
 /* ── CSS ──────────────────────────────────────────────────────────── */
 const WORK_CSS = `
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Poppins:wght@400;500;600;700;800&display=swap');
@@ -387,6 +393,26 @@ const WORK_CSS = `
     .work-cta-btns { flex-direction: column; width: 100%; }
     .work-btn-primary, .work-btn-outline { justify-content: center; width: 100%; }
   }
+
+  @media (max-width: 768px) {
+    /* Remove GPU pre-allocation on elements that don't need it on mobile */
+    .split-char,
+    .proj-card,
+    .proc-card,
+    .parallax-card-container,
+    .parallax-card-content,
+    .parallax-image-circle {
+      will-change: auto !important;
+    }
+
+    /* Disable 3D transform context on mobile — causes compositing cost */
+    .projects-cards,
+    .proj-card,
+    .proc-stage {
+      transform-style: flat !important;
+      perspective: none !important;
+    }
+  }
 `;
 
 /* ── DATA ───────────────────────────────────────────────────────────── */
@@ -548,11 +574,15 @@ function ProjectCard({ project, index }: ProjectCardProps): React.ReactElement {
       initial={{ opacity: 0, y: 30 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-60px' }}
-      transition={{ delay: index * 0.12, duration: 0.6, ease: 'easeOut' }}
-      whileHover={{
-        y: -6,
-        boxShadow: '0 16px 48px rgba(167,139,250,0.18)',
-      }}
+      transition={mobileTransition ?? { delay: index * 0.12, duration: 0.6, ease: 'easeOut' }}
+      whileHover={
+        window.innerWidth > 768
+          ? {
+              y: -6,
+              boxShadow: '0 16px 48px rgba(167,139,250,0.18)',
+            }
+          : {}
+      }
     >
       {/* Accent bar */}
       <div
@@ -589,7 +619,7 @@ function ProjectCard({ project, index }: ProjectCardProps): React.ReactElement {
             href={project.href}
             target="_blank"
             rel="noopener noreferrer"
-            whileHover={{ x: 4 }}
+            whileHover={window.innerWidth > 768 ? { x: 4 } : {}}
             transition={{ type: 'spring', stiffness: 300, damping: 20 }}
           >
             View Project →
@@ -621,7 +651,7 @@ function TechStackSection(): React.ReactElement {
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
-        transition={{ duration: 0.55 }}
+        transition={mobileTransition ?? { duration: 0.55 }}
         style={{ display: 'flex', justifyContent: 'center' }}
       >
         <div className="work-pill">
@@ -635,7 +665,7 @@ function TechStackSection(): React.ReactElement {
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
-        transition={{ duration: 0.55, delay: 0.12 }}
+        transition={mobileTransition ?? { duration: 0.55, delay: 0.12 }}
       >
         Tools That Power My Work
       </motion.h2>
@@ -648,8 +678,8 @@ function TechStackSection(): React.ReactElement {
             initial={{ opacity: 0, scale: 0.85 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
-            transition={{ delay: i * 0.04, duration: 0.4, ease: 'easeOut' }}
-            whileHover={{ scale: 1.08, y: -2 }}
+            transition={mobileTransition ?? { delay: i * 0.04, duration: 0.4, ease: 'easeOut' }}
+            whileHover={window.innerWidth > 768 ? { scale: 1.08, y: -2 } : {}}
           >
             {tech.name}
           </motion.div>
@@ -670,7 +700,7 @@ function CTASection(): React.ReactElement {
         initial={{ opacity: 0, y: 24 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
-        transition={{ duration: 0.6 }}
+        transition={mobileTransition ?? { duration: 0.6 }}
       >
         Want to Build Something?
       </motion.h2>
@@ -680,7 +710,7 @@ function CTASection(): React.ReactElement {
         initial={{ opacity: 0, y: 24 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
-        transition={{ duration: 0.6, delay: 0.14 }}
+        transition={mobileTransition ?? { duration: 0.6, delay: 0.14 }}
       >
         I&apos;m available for freelance, contract, and full-time remote work.
         Let&apos;s talk.
@@ -691,14 +721,18 @@ function CTASection(): React.ReactElement {
         initial={{ opacity: 0, y: 24 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
-        transition={{ duration: 0.6, delay: 0.26 }}
+        transition={mobileTransition ?? { duration: 0.6, delay: 0.26 }}
       >
         <motion.a
           href="https://www.fiverr.com/alyan_haider259"
           target="_blank"
           rel="noopener noreferrer"
           className="work-btn-primary"
-          whileHover={{ scale: 1.05, boxShadow: '0 10px 34px rgba(45,212,191,0.40)' }}
+          whileHover={
+            window.innerWidth > 768
+              ? { scale: 1.05, boxShadow: '0 10px 34px rgba(45,212,191,0.40)' }
+              : {}
+          }
           transition={{ type: 'spring', stiffness: 300, damping: 20 }}
         >
           View on Fiverr
@@ -714,7 +748,11 @@ function CTASection(): React.ReactElement {
           target="_blank"
           rel="noopener noreferrer"
           className="work-btn-outline"
-          whileHover={{ scale: 1.03, borderColor: 'rgba(94,234,212,0.50)', background: 'rgba(255,255,255,0.95)' }}
+          whileHover={
+            window.innerWidth > 768
+              ? { scale: 1.03, borderColor: 'rgba(94,234,212,0.50)', background: 'rgba(255,255,255,0.95)' }
+              : {}
+          }
           transition={{ type: 'spring', stiffness: 300, damping: 20 }}
         >
           WhatsApp Me
