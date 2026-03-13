@@ -204,6 +204,16 @@ export default function SharedNav({ activePage }: SharedNavProps) {
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
+    if ("scrollRestoration" in window.history) {
+      window.history.scrollRestoration = "manual";
+    }
+  }, [location.pathname]);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }, [location.pathname]);
+
+  useEffect(() => {
     if (document.getElementById("shared-nav-styles")) return;
     const style = document.createElement("style");
     style.id = "shared-nav-styles";
