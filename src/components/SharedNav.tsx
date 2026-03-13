@@ -151,6 +151,19 @@ nav a.active::after { transform: translateX(-50%) scaleX(1); opacity: 1; }
 @media (max-width: 600px) {
   .header-inner { width: calc(100% - 32px); height: 52px; padding: 0 18px; }
 }
+
+@media (max-width: 768px) {
+  .header-inner {
+    backdrop-filter: blur(8px) saturate(120%) !important;
+    -webkit-backdrop-filter: blur(8px) saturate(120%) !important;
+  }
+
+  .mobile-menu {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: rgba(249,248,255,0.99) !important;
+  }
+}
 `.trim();
 
 export default function SharedNav({ activePage }: SharedNavProps) {
@@ -199,8 +212,28 @@ export default function SharedNav({ activePage }: SharedNavProps) {
   }, []);
 
   useEffect(() => {
+    const threshold = 20;
+
+    const isMobile = window.innerWidth < 768;
+    if (isMobile) {
+      let scrollTicking = false;
+      const handleScroll = () => {
+        if (!scrollTicking) {
+          window.requestAnimationFrame(() => {
+            setScrolled(window.scrollY > threshold);
+            scrollTicking = false;
+          });
+          scrollTicking = true;
+        }
+      };
+
+      handleScroll();
+      window.addEventListener("scroll", handleScroll, { passive: true });
+      return () => window.removeEventListener("scroll", handleScroll);
+    }
+
     const onScroll = () => {
-      setScrolled(window.scrollY > 20);
+      setScrolled(window.scrollY > threshold);
     };
 
     onScroll();
