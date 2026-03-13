@@ -117,6 +117,9 @@ export default function About() {
   );
 
   useEffect(() => {
+    if (window.innerWidth < 768) {
+      gsap.config({force3D: false});
+    }
     const root = rootRef.current;
     if (!root) return;
 
@@ -160,6 +163,7 @@ export default function About() {
   }, []);
 
   useEffect(() => {
+    if (window.innerWidth < 768) return;
     const wrap = techWrapRef.current;
     if (!wrap) return;
 
