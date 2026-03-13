@@ -38,6 +38,7 @@ const CONTACT_PAGE_CSS_BASE = [
   '.contact-page{position:relative;z-index:1;min-height:100vh}',
   '.contact-grid{min-height:100vh;display:grid;grid-template-columns:1fr 1fr;gap:0}',
   '@media (max-width:767px){.contact-grid{grid-template-columns:1fr}.status-indicator{top:16px;right:16px}}',
+  '@media (max-width:768px){.status-indicator,.field-input,.dropdown-trigger,.send-btn{backdrop-filter:none !important;-webkit-backdrop-filter:none !important}}',
 ].join('\n');
 
 const CONTACT_PAGE_CSS_NAV = [
@@ -144,6 +145,7 @@ function SignalCanvas({isMobile}: {isMobile: boolean}) {
     let width = 0;
     let height = 0;
     let time = 0;
+    let frameCount = 0;
 
     const resize = () => {
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -176,8 +178,13 @@ function SignalCanvas({isMobile}: {isMobile: boolean}) {
     };
 
     const tick = () => {
+      frameCount += 1;
+      if (isMobile && frameCount % 2 !== 0) {
+        rafRef.current = window.requestAnimationFrame(tick);
+        return;
+      }
       ctx.clearRect(0, 0, width, height);
-      const amp = isMobile ? 0.5 : 1;
+      const amp = isMobile ? 0.4 : 1;
       const yCenter = height * 0.6;
 
       drawWave({amplitude: 18 * amp, frequency: time * 0.0008, yCenter, phase: 0, stroke: 'rgba(45,212,191,0.07)', lineWidth: 1.5});
