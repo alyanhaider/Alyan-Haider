@@ -2,6 +2,12 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence, useAnimationControls } from "framer-motion";
 import SharedNav from "../components/SharedNav";
 
+// Reduce motion on mobile for better performance
+const mobileTransition =
+  typeof window !== "undefined" && window.innerWidth < 768
+    ? { duration: 0.2, ease: "easeOut" }
+    : undefined; // undefined means use the component's own transition
+
 /* ══════════════════════════════════════════════════════════════════════════════
    PALETTE
 ══════════════════════════════════════════════════════════════════════════════ */
@@ -67,6 +73,34 @@ const FAQ_CSS = `
   outline: 2px solid rgba(45,212,191,0.55);
   outline-offset: 2px;
   border-radius: 12px;
+}
+
+@media (max-width: 768px) {
+  /* Simplify book transforms on mobile */
+  [class*="book"],
+  [class*="Book"] {
+    perspective: none !important;
+    transform-style: flat !important;
+    will-change: auto !important;
+  }
+
+  /* Remove GPU pre-allocation on elements that don't need it on mobile */
+  .split-char,
+  .proj-card,
+  .proc-card,
+  .parallax-card-container,
+  .parallax-card-content,
+  .parallax-image-circle {
+    will-change: auto !important;
+  }
+
+  /* Disable 3D transform context on mobile — causes compositing cost */
+  .projects-cards,
+  .proj-card,
+  .proc-stage {
+    transform-style: flat !important;
+    perspective: none !important;
+  }
 }
 `;
 
@@ -954,7 +988,7 @@ export default function FAQPage() {
               <motion.button
                 key={cat}
                 className="faq-btn"
-                whileHover={{ scale: 1.04 }}
+                whileHover={window.innerWidth > 768 ? { scale: 1.04 } : {}}
                 whileTap={{ scale: 0.96 }}
                 onClick={() => setActiveCategory(cat)}
                 style={{
@@ -986,7 +1020,11 @@ export default function FAQPage() {
                       background: "linear-gradient(135deg, #2DD4BF, #A78BFA)",
                       zIndex: -1,
                     }}
-                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                    transition={
+                      window.innerWidth < 768
+                        ? { type: "tween", duration: 0.25 }
+                        : { type: "spring", stiffness: 400, damping: 30 }
+                    }
                   />
                 )}
                 {cat}
@@ -1007,7 +1045,7 @@ export default function FAQPage() {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-40px" }}
-                transition={{ delay: index * 0.055, duration: 0.5 }}
+                transition={mobileTransition ?? { delay: index * 0.055, duration: 0.5 }}
                 style={{
                   marginBottom: 12,
                   borderRadius: 16,
@@ -1116,7 +1154,7 @@ export default function FAQPage() {
                             href={item.linkHref}
                             target="_blank"
                             rel="noopener noreferrer"
-                            whileHover={{ x: 3 }}
+                            whileHover={window.innerWidth > 768 ? { x: 3 } : {}}
                             style={{
                               display: "inline-flex", alignItems: "center", gap: 4,
                               marginTop: 14,
@@ -1160,7 +1198,7 @@ export default function FAQPage() {
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
+          transition={mobileTransition ?? { duration: 0.6 }}
           style={{
             fontFamily: "'Poppins', sans-serif",
             fontWeight: 700,
@@ -1191,7 +1229,11 @@ export default function FAQPage() {
           {/* email button */}
           <motion.a
             href="mailto:alyanhaider369@gmail.com"
-            whileHover={{ scale: 1.04, boxShadow: "0 12px 40px rgba(45,212,191,0.45)" }}
+            whileHover={
+              window.innerWidth > 768
+                ? { scale: 1.04, boxShadow: "0 12px 40px rgba(45,212,191,0.45)" }
+                : {}
+            }
             whileTap={{ scale: 0.97 }}
             style={{
               display: "inline-flex", alignItems: "center", gap: 8,
@@ -1218,7 +1260,11 @@ export default function FAQPage() {
             href="https://wa.me/923255629527"
             target="_blank"
             rel="noopener noreferrer"
-            whileHover={{ scale: 1.04, borderColor: "rgba(45,212,191,0.75)" }}
+            whileHover={
+              window.innerWidth > 768
+                ? { scale: 1.04, borderColor: "rgba(45,212,191,0.75)" }
+                : {}
+            }
             whileTap={{ scale: 0.97 }}
             style={{
               display: "inline-flex", alignItems: "center", gap: 8,
